@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "uptrace-mcp"
+version = "0.1.0"
+description = "MCP server for Uptrace observability platform"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "uptrace_mcp", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+mcp = "^1.1.2"
+requests = "^2.32.0"
+pydantic = "^2.10.0"
+python-dotenv = "^1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+black = "^24.10.0"
+ruff = "^0.8.0"
+mypy = "^1.13.0"
+
+[tool.poetry.scripts]
+uptrace-mcp = "uptrace_mcp.server:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
