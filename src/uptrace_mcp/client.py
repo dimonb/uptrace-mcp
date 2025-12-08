@@ -27,7 +27,7 @@ class UptraceClient:
         Initialize Uptrace client.
 
         Args:
-            base_url: Base URL of Uptrace instance (e.g., https://uptrace.finlab.team)
+            base_url: Base URL of Uptrace instance (e.g., https://uptrace.xxx)
             project_id: Project ID
             api_token: API authentication token
         """

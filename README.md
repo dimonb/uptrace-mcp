@@ -36,7 +36,7 @@ pip install -e .
 Create a `.env` file in the project root or set environment variables:
 
 ```bash
-UPTRACE_URL=https://uptrace.finlab.team
+UPTRACE_URL=https://uptrace.xxx
 UPTRACE_PROJECT_ID=3
 UPTRACE_API_TOKEN=your_token_here
 ```
@@ -64,7 +64,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
       "args": ["run", "uptrace-mcp"],
       "cwd": "/Users/your-username/work/pet/uptrace-mcp",
       "env": {
-        "UPTRACE_URL": "https://uptrace.finlab.team",
+        "UPTRACE_URL": "https://uptrace.xxx",
         "UPTRACE_PROJECT_ID": "3",
         "UPTRACE_API_TOKEN": "your_token_here"
       }

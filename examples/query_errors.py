@@ -16,7 +16,7 @@ def main():
     """Query and display error spans."""
     # Initialize client
     client = UptraceClient(
-        base_url=os.getenv("UPTRACE_URL", "https://uptrace.finlab.team"),
+        base_url=os.getenv("UPTRACE_URL", "https://uptrace.xxx"),
         project_id=os.getenv("UPTRACE_PROJECT_ID", "3"),
         api_token=os.getenv("UPTRACE_API_TOKEN", ""),
     )
