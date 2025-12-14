@@ -82,9 +82,9 @@ Add the following configuration (replace the paths with your actual project path
 {
   "mcpServers": {
     "uptrace": {
-      "command": "/Users/dimonb/work/pet/uptrace-mcp/.venv/bin/poetry",
+      "command": "/path/to/uptrace-mcp/.venv/bin/poetry",
       "args": ["run", "uptrace-mcp"],
-      "cwd": "/Users/dimonb/work/pet/uptrace-mcp",
+      "cwd": "/path/to/uptrace-mcp",
       "env": {
         "UPTRACE_URL": "https://uptrace.xxx",
         "UPTRACE_PROJECT_ID": "3",

@@ -8,8 +8,8 @@
 Полный путь к исполняемому файлу Poetry или Python.
 
 **Примеры:**
-- Poetry из виртуального окружения: `/Users/dimonb/work/pet/uptrace-mcp/.venv/bin/poetry`
-- Python из виртуального окружения: `/Users/dimonb/work/pet/uptrace-mcp/.venv/bin/python`
+- Poetry из виртуального окружения: `/path/to/uptrace-mcp/.venv/bin/poetry`
+- Python из виртуального окружения: `/path/to/uptrace-mcp/.venv/bin/python`
 - Системный Poetry: `poetry` (если установлен глобально)
 
 ### `args`
@@ -32,18 +32,18 @@
 
 **Правильно:**
 ```json
-"cwd": "/Users/dimonb/work/pet/uptrace-mcp"
+"cwd": "/path/to/uptrace-mcp"
 ```
 
 **Неправильно:**
 ```json
-"cwd": "/Users/dimonb"  // ❌ Poetry не найдет pyproject.toml
-"cwd": "/Users/dimonb/work"  // ❌ Poetry не найдет pyproject.toml
+"cwd": "/path/to"  // ❌ Poetry не найдет pyproject.toml
+"cwd": "/home/user"  // ❌ Poetry не найдет pyproject.toml
 ```
 
 Если `cwd` указан неправильно, вы увидите ошибку:
 ```
-Poetry could not find a pyproject.toml file in /Users/dimonb or its parents
+Poetry could not find a pyproject.toml file in /path/to or its parents
 ```
 
 ### `env`
@@ -60,9 +60,9 @@ Poetry could not find a pyproject.toml file in /Users/dimonb or its parents
 {
   "mcpServers": {
     "uptrace": {
-      "command": "/Users/dimonb/work/pet/uptrace-mcp/.venv/bin/poetry",
+      "command": "/path/to/uptrace-mcp/.venv/bin/poetry",
       "args": ["run", "uptrace-mcp"],
-      "cwd": "/Users/dimonb/work/pet/uptrace-mcp",
+      "cwd": "/path/to/uptrace-mcp",
       "env": {
         "UPTRACE_URL": "https://uptrace.xxx",
         "UPTRACE_PROJECT_ID": "3",
@@ -98,9 +98,9 @@ Poetry could not find a pyproject.toml file in /Users/dimonb or its parents
 {
   "mcpServers": {
     "uptrace": {
-      "command": "/Users/dimonb/work/pet/uptrace-mcp/.venv/bin/python",
+      "command": "/path/to/uptrace-mcp/.venv/bin/python",
       "args": ["-m", "uptrace_mcp.server"],
-      "cwd": "/Users/dimonb/work/pet/uptrace-mcp",
+      "cwd": "/path/to/uptrace-mcp",
       "env": {
         "UPTRACE_URL": "https://uptrace.xxx",
         "UPTRACE_PROJECT_ID": "3",
@@ -124,9 +124,9 @@ Poetry could not find a pyproject.toml file in /Users/dimonb or its parents
 {
   "mcpServers": {
     "uptrace": {
-      "command": "/Users/dimonb/work/pet/uptrace-mcp/.venv/bin/poetry",
-      "args": ["--directory", "/Users/dimonb/work/pet/uptrace-mcp", "run", "uptrace-mcp"],
-      "cwd": "/Users/dimonb/work/pet/uptrace-mcp",
+      "command": "/path/to/uptrace-mcp/.venv/bin/poetry",
+      "args": ["--directory", "/path/to/uptrace-mcp", "run", "uptrace-mcp"],
+      "cwd": "/path/to/uptrace-mcp",
       "env": {
         "UPTRACE_URL": "https://uptrace.xxx",
         "UPTRACE_PROJECT_ID": "3",
