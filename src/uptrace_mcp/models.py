@@ -77,3 +77,71 @@ class ServiceInfo(BaseModel):
     version: Optional[str] = None
     environment: Optional[str] = None
     span_count: Optional[int] = None
+
+
+class LogEntry(BaseModel):
+    """Log entry model (logs are represented as spans with _system = 'log:all')."""
+
+    id: str
+    trace_id: Optional[str] = Field(None, alias="traceId")
+    time: float
+    attrs: Dict[str, Any] = Field(default_factory=dict)
+    log_severity: Optional[str] = Field(None, alias="log_severity")
+    log_message: Optional[str] = Field(None, alias="log_message")
+    service_name: Optional[str] = Field(None, alias="service_name")
+
+    @property
+    def severity(self) -> Optional[str]:
+        """Get log severity from attributes."""
+        return self.attrs.get("log_severity") or self.log_severity
+
+    @property
+    def message(self) -> Optional[str]:
+        """Get log message from attributes."""
+        return self.attrs.get("log_message") or self.log_message
+
+    class Config:
+        populate_by_name = True
+
+
+class LogsResponse(BaseModel):
+    """Response model for logs query."""
+
+    count: int
+    logs: List[LogEntry]
+    has_more: Optional[bool] = Field(None, alias="hasMore")
+
+    class Config:
+        populate_by_name = True
+
+
+class MetricQuery(BaseModel):
+    """Metric query model."""
+
+    metrics: List[str]
+    query: List[str]
+
+    class Config:
+        populate_by_name = True
+
+
+class MetricResult(BaseModel):
+    """Metric query result model."""
+
+    metric: str
+    value: float
+    labels: Dict[str, str] = Field(default_factory=dict)
+    timestamp: Optional[float] = None
+
+    class Config:
+        populate_by_name = True
+
+
+class MetricsResponse(BaseModel):
+    """Response model for metrics query."""
+
+    results: List[MetricResult]
+    metadata: Optional[Dict[str, Any]] = None
+
+    class Config:
+        populate_by_name = True
