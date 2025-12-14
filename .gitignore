@@ -21,6 +21,7 @@ wheels/
 *.egg
 
 # Virtual environments
+.python-version
 venv/
 ENV/
 env/
