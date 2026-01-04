@@ -8,7 +8,7 @@ from urllib.parse import urljoin
 import requests
 from pydantic import ValidationError
 
-from .models import LogEntry, LogsResponse, Span, SpansResponse
+from .models import Alert, Dashboard, LogEntry, LogsResponse, Monitor, Span, SpansResponse
 
 logger = logging.getLogger(__name__)
 
@@ -590,7 +590,109 @@ class UptraceClient:
             limit=limit,
         )
 
+    def get_monitors(self) -> List[Monitor]:
+        """
+        Get all monitors.
+
+        Returns:
+            List of monitors
+
+        Raises:
+            UptraceClientError: If request fails
+        """
+        path = f"/internal/v1/projects/{self.project_id}/monitors"
+        
+        try:
+            data = self._make_request("GET", path)
+            return [Monitor(**m) for m in data.get("monitors", [])]
+        except ValidationError as e:
+            logger.error(f"Failed to parse monitors response: {e}")
+            raise UptraceClientError(f"Failed to parse response: {e}") from e
+
+    def get_monitor(self, monitor_id: str) -> Monitor:
+        """
+        Get a specific monitor by ID.
+
+        Args:
+            monitor_id: Monitor ID
+
+        Returns:
+            Monitor object
+
+        Raises:
+            UptraceClientError: If request fails
+        """
+        path = f"/internal/v1/projects/{self.project_id}/monitors/{monitor_id}"
+        
+        try:
+            data = self._make_request("GET", path)
+            return Monitor(**data.get("monitor", {}))
+        except ValidationError as e:
+            logger.error(f"Failed to parse monitor response: {e}")
+            raise UptraceClientError(f"Failed to parse response: {e}") from e
+
+    def get_dashboards(self) -> List[Dashboard]:
+        """
+        Get all dashboards.
+
+        Returns:
+            List of dashboards
+
+        Raises:
+            UptraceClientError: If request fails
+        """
+        # Note: Assuming standard REST path structure for now as it's not explicitly documented in the provided snippets
+        # If this fails, we may need to investigate the API further or assume it's under project scope.
+        # Based on other endpoints, it's likely /api/v1/projects/{project_id}/dashboards or /api/v1/dashboards
+        # Let's try project scoped first as it matches other internal APIs
+        path = f"/internal/v1/projects/{self.project_id}/dashboards"
+        
+        try:
+            # Fallback to public API if internal fails? No, let's try assuming standard structure.
+            # If 404, we might need to look for another endpoint.
+            data = self._make_request("GET", path)
+            return [Dashboard(**d) for d in data.get("dashboards", [])]
+        except UptraceClientError as e:
+             # Just in case the path is different, try public API path
+            if "404" in str(e):
+                try:
+                    path = f"/api/v1/tracing/{self.project_id}/dashboards"
+                    data = self._make_request("GET", path)
+                    return [Dashboard(**d) for d in data.get("dashboards", [])]
+                except Exception:
+                    raise e
+            raise e
+        except ValidationError as e:
+            logger.error(f"Failed to parse dashboards response: {e}")
+            raise UptraceClientError(f"Failed to parse response: {e}") from e
+
+    def get_alert(self, alert_id: str) -> Alert:
+        """
+        Get a specific alert incident by ID.
+
+        Args:
+            alert_id: Alert ID
+
+        Returns:
+            Alert object
+
+        Raises:
+            UptraceClientError: If request fails
+        """
+        path = f"/internal/v1/projects/{self.project_id}/alerts/{alert_id}"
+        
+        try:
+            data = self._make_request("GET", path)
+            alert_data = data.get("alert", {})
+            if "events" in data:
+                alert_data["events"] = data["events"]
+            return Alert(**alert_data)
+        except ValidationError as e:
+            logger.error(f"Failed to parse alert response: {e}")
+            raise UptraceClientError(f"Failed to parse response: {e}") from e
+
     def get_query_syntax(self) -> Dict[str, Any]:
+
         """
         Get UQL (Uptrace Query Language) syntax documentation.
 

@@ -1,7 +1,7 @@
 """Data models for Uptrace API."""
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -142,6 +142,55 @@ class MetricsResponse(BaseModel):
 
     results: List[MetricResult]
     metadata: Optional[Dict[str, Any]] = None
+
+    class Config:
+        populate_by_name = True
+
+
+class Monitor(BaseModel):
+    """Monitor model."""
+
+    id: Union[str, int]
+    name: str
+    type: str
+    params: Dict[str, Any]
+    notify_everyone_by_email: Optional[bool] = Field(None, alias="notifyEveryoneByEmail")
+    team_ids: Optional[List[int]] = Field(None, alias="teamIds")
+    channel_ids: Optional[List[int]] = Field(None, alias="channelIds")
+    repeat_interval: Optional[Any] = Field(None, alias="repeatInterval")
+
+    class Config:
+        populate_by_name = True
+
+
+class Dashboard(BaseModel):
+    """Dashboard model."""
+
+    id: str
+    name: str
+    description: Optional[str] = None
+    folder_id: Optional[int] = Field(None, alias="folderId")
+    data: Dict[str, Any] = Field(default_factory=dict)
+    created_at: Optional[datetime] = Field(None, alias="createdAt")
+    updated_at: Optional[datetime] = Field(None, alias="updatedAt")
+
+    class Config:
+        populate_by_name = True
+
+
+class Alert(BaseModel):
+    """Alert incident model."""
+
+    id: Union[str, int]
+    project_id: Union[str, int] = Field(alias="projectId")
+    monitor_id: Union[str, int] = Field(alias="monitorId")
+    name: str
+    type: str
+    attrs: Dict[str, Any] = Field(default_factory=dict)
+    created_at: float = Field(alias="createdAt")
+    updated_at: float = Field(alias="updatedAt")
+    status: Optional[str] = None
+    events: List[Dict[str, Any]] = Field(default_factory=list)
 
     class Config:
         populate_by_name = True

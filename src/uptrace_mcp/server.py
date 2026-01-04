@@ -269,6 +269,88 @@ async def list_tools() -> list[Tool]:
                 "properties": {},
             },
         ),
+        Tool(
+            name="uptrace_get_alert",
+            description="Get details of a specific alert incident by ID.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "alert_id": {
+                        "type": "string",
+                        "description": "ID of the alert incident to retrieve",
+                    },
+                },
+                "required": ["alert_id"],
+            },
+        ),
+        Tool(
+            name="uptrace_list_monitors",
+            description="List all alerting monitors. Returns monitor IDs, names, types, and configuration.",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+            },
+        ),
+        Tool(
+            name="uptrace_get_monitor",
+            description="Get details of a specific monitor by ID.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "monitor_id": {
+                        "type": "string",
+                        "description": "ID of the monitor to retrieve",
+                    },
+                },
+                "required": ["monitor_id"],
+            },
+        ),
+        Tool(
+            name="uptrace_list_dashboards",
+            description="List all dashboards. Returns dashboard IDs and names.",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+            },
+        ),
+        Tool(
+            name="uptrace_query_metrics",
+            description="Query metrics using UQL/PromQL-compatible syntax. Use this to retrieve metric values like CPU usage, request rates, etc.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "time_gte": {
+                        "type": "string",
+                        "description": "Start time in ISO format (YYYY-MM-DDTHH:MM:SSZ)",
+                    },
+                    "time_lt": {
+                        "type": "string",
+                        "description": "End time in ISO format (YYYY-MM-DDTHH:MM:SSZ)",
+                    },
+                    "metrics": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of metric definitions with aliases (e.g., ['system_cpu_utilization as $cpu'])",
+                    },
+                    "query": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of query expressions (e.g., ['avg($cpu) as cpu_avg'])",
+                    },
+                    "group_by": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Optional list of attributes to group by",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of results (default: 100)",
+                        "default": 100,
+                    },
+                },
+                "required": ["time_gte", "time_lt", "metrics", "query"],
+            },
+        ),
     ]
 
 
@@ -754,6 +836,147 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
                     lines.append("")
 
             return [TextContent(type="text", text="\n".join(lines))]
+
+        elif name == "uptrace_get_alert":
+            alert_id = arguments.get("alert_id")
+            if not alert_id:
+                return [TextContent(type="text", text="Error: alert_id is required")]
+
+            logger.info(f"Fetching alert: {alert_id}")
+            alert = client.get_alert(alert_id)
+
+            import json
+            
+            lines = [
+                f"# Alert: {alert.name}",
+                f"- **ID**: {alert.id}",
+                f"- **Type**: {alert.type}",
+                f"- **Status**: {alert.status or 'Unknown'}",
+                f"- **Created At**: {datetime.fromtimestamp(alert.created_at/1000, tz=timezone.utc).isoformat()}",
+                f"- **Monitor ID**: {alert.monitor_id}",
+                "",
+                "## Attributes",
+                f"```json\n{json.dumps(alert.attrs, indent=2)}\n```",
+                "",
+            ]
+
+            if alert.events:
+                lines.append("## Events")
+                for event in alert.events:
+                    ts = datetime.fromtimestamp(event.get('createdAt', 0)/1000, tz=timezone.utc).isoformat()
+                    name = event.get('name', 'Unknown')
+                    lines.append(f"- **{ts}**: {name} ({event.get('status', '')})")
+            
+            return [TextContent(type="text", text="\n".join(lines))]
+
+        elif name == "uptrace_list_monitors":
+            logger.info("Listing monitors")
+            monitors = client.get_monitors()
+
+            lines = [
+                f"# Monitors",
+                f"**Total Monitors**: {len(monitors)}",
+                "",
+            ]
+
+            if monitors:
+                lines.append("## Monitor List")
+                for monitor in monitors:
+                    lines.append(f"- **{monitor.name}** ({monitor.type}) [ID: {monitor.id}]")
+            else:
+                lines.append("No monitors found.")
+
+            return [TextContent(type="text", text="\n".join(lines))]
+
+        elif name == "uptrace_get_monitor":
+            monitor_id = arguments.get("monitor_id")
+            if not monitor_id:
+                return [TextContent(type="text", text="Error: monitor_id is required")]
+
+            logger.info(f"Fetching monitor: {monitor_id}")
+            monitor = client.get_monitor(monitor_id)
+
+            import json
+            
+            lines = [
+                f"# Monitor: {monitor.name}",
+                f"- **ID**: {monitor.id}",
+                f"- **Type**: {monitor.type}",
+                f"- **Notify Everyone**: {monitor.notify_everyone_by_email}",
+                "",
+                "## Parameters",
+                f"```json\n{json.dumps(monitor.params, indent=2)}\n```",
+            ]
+
+            if monitor.team_ids:
+                lines.append(f"- **Team IDs**: {monitor.team_ids}")
+            if monitor.channel_ids:
+                lines.append(f"- **Channel IDs**: {monitor.channel_ids}")
+            if monitor.repeat_interval:
+                lines.append(f"- **Repeat Interval**: {monitor.repeat_interval}")
+
+            return [TextContent(type="text", text="\n".join(lines))]
+
+        elif name == "uptrace_list_dashboards":
+            logger.info("Listing dashboards")
+            dashboards = client.get_dashboards()
+
+            lines = [
+                f"# Dashboards",
+                f"**Total Dashboards**: {len(dashboards)}",
+                "",
+            ]
+
+            if dashboards:
+                lines.append("## Dashboard List")
+                for dashboard in dashboards:
+                    lines.append(f"- **{dashboard.name}** [ID: {dashboard.id}]")
+                    if dashboard.description:
+                        lines.append(f"  {dashboard.description}")
+            else:
+                lines.append("No dashboards found.")
+
+            return [TextContent(type="text", text="\n".join(lines))]
+
+        elif name == "uptrace_query_metrics":
+            try:
+                time_gte = parse_datetime(arguments["time_gte"])
+                time_lt = parse_datetime(arguments["time_lt"])
+            except (KeyError, ValueError) as e:
+                return [TextContent(type="text", text=f"Error: {str(e)}")]
+
+            metrics = arguments.get("metrics")
+            query = arguments.get("query")
+            group_by = arguments.get("group_by")
+            limit = arguments.get("limit", 100)
+
+            logger.info(f"Querying metrics: {metrics}")
+            
+            if group_by:
+                result = client.query_metrics_groups(
+                    time_gte=time_gte,
+                    time_lt=time_lt,
+                    metrics=metrics,
+                    query=query,
+                    group_by=group_by,
+                    limit=limit
+                )
+            else:
+                result = client.query_metrics(
+                    time_gte=time_gte,
+                    time_lt=time_lt,
+                    metrics=metrics,
+                    query=query,
+                    limit=limit
+                )
+
+            import json
+            return [
+                TextContent(
+                    type="text",
+                    text=f"# Metrics Query Results\n\n```json\n{json.dumps(result, indent=2)}\n```",
+                )
+            ]
 
         else:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]
