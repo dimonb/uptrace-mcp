@@ -47,10 +47,15 @@ You can also use a YAML file for configuration by passing the `--config` paramet
 ```yaml
 # config.yaml
 uptrace:
-  api_url: "https://uptrace.xxx"
-  project_id: "3"
-  api_token: "your_token_here"
+  api_url: "https://uptrace.example.com"
+  project_id: "1"
+  api_token: "your-api-token"
+logging:
+  level: "DEBUG"
+  file: "/path/to/uptrace-mcp.log"
 ```
+
+The `logging` section is optional. By default, the server logs to standard error (`stderr`) at the `INFO` level.
 
 ### Getting your Uptrace API token
 

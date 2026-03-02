@@ -21,17 +21,9 @@ from .client import UptraceClient, UptraceClientError
 # Load environment variables
 load_dotenv()
 
-# Configure logging
-# Set MCP server logging to WARNING to reduce noise in Cursor logs
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
+# We will configure logging in `main()` after parsing config.
+# For now, just create the logger instance.
 logger = logging.getLogger(__name__)
-
-# Reduce verbosity of MCP server internal logging
-mcp_logger = logging.getLogger("mcp.server")
-mcp_logger.setLevel(logging.WARNING)
 
 
 def parse_datetime(value: str) -> datetime:
@@ -136,8 +128,6 @@ def create_uptrace_client(config_path: Optional[str] = None) -> UptraceClient:
                 project_id = str(uptrace_config["project_id"]).strip()
             if "api_token" in uptrace_config:
                 api_token = str(uptrace_config["api_token"]).strip()
-        except yaml.YAMLError as e:
-            raise ValueError(f"Invalid YAML in configuration file: {e}")
         except Exception as e:
             raise ValueError(f"Error reading configuration file: {e}")
 
@@ -1085,6 +1075,44 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+
+    # Default logging config
+    log_level = logging.INFO
+    log_file = None
+
+    # Parse config file for logging settings if provided
+    if args.config and os.path.exists(args.config):
+        try:
+            with open(args.config, "r") as f:
+                config = yaml.safe_load(f)
+
+            # Check for logging settings
+            if "logging" in config:
+                log_config = config["logging"]
+                if "level" in log_config:
+                    level_str = str(log_config["level"]).upper()
+                    if hasattr(logging, level_str):
+                        log_level = getattr(logging, level_str)
+                if "file" in log_config:
+                    log_file = str(log_config["file"]).strip()
+        except Exception:
+            # We'll catch config errors properly in create_uptrace_client
+            pass
+
+    # Configure logging
+    log_kwargs: dict[str, Any] = {
+        "level": log_level,
+        "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    }
+
+    if log_file:
+        log_kwargs["filename"] = log_file
+
+    logging.basicConfig(**log_kwargs)
+
+    # Reduce verbosity of MCP server internal logging
+    mcp_logger = logging.getLogger("mcp.server")
+    mcp_logger.setLevel(logging.WARNING)
 
     logger.info("Starting Uptrace MCP server")
 
