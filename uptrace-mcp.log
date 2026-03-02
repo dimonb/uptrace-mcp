@@ -1,0 +1,4 @@
+2026-03-03 00:05:27,087 - uptrace_mcp.server - INFO - Starting Uptrace MCP server
+2026-03-03 00:05:27,087 - uptrace_mcp.server - INFO - Initializing Uptrace client for https://uptrace.finlab.team (project: 3)
+2026-03-03 00:05:27,087 - asyncio - DEBUG - Using selector: KqueueSelector
+2026-03-03 00:05:39,241 - uptrace_mcp.server - INFO - Server stopped by user

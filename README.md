@@ -51,7 +51,7 @@ uptrace:
   project_id: "1"
   api_token: "your-api-token"
 logging:
-  level: "DEBUG"
+  level: debug
   file: "/path/to/uptrace-mcp.log"
 ```
 
