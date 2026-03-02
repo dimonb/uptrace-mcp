@@ -108,25 +108,33 @@ def create_uptrace_client(config_path: Optional[str] = None) -> UptraceClient:
         ValueError: If required configuration is missing
     """
     # Start with environment variables
+    logger.debug("Loading Uptrace API config. First checking environment variables.")
     base_url = os.getenv("UPTRACE_URL", "").strip()
     project_id = os.getenv("UPTRACE_PROJECT_ID", "").strip()
     api_token = os.getenv("UPTRACE_API_TOKEN", "").strip()
 
     # Override with YAML config if provided
     if config_path:
+        logger.debug(f"Config path provided: {config_path}")
         if not os.path.exists(config_path):
+            logger.error(f"Configuration file not found: {config_path}")
             raise ValueError(f"Configuration file not found: {config_path}")
 
         try:
             with open(config_path, "r") as f:
                 config = yaml.safe_load(f)
 
+            logger.debug(f"Successfully loaded YAML config from {config_path}")
+
             uptrace_config = config.get("uptrace", {})
             if "api_url" in uptrace_config:
+                logger.debug("Overriding UPTRACE_URL from config file.")
                 base_url = str(uptrace_config["api_url"]).strip()
             if "project_id" in uptrace_config:
+                logger.debug("Overriding UPTRACE_PROJECT_ID from config file.")
                 project_id = str(uptrace_config["project_id"]).strip()
             if "api_token" in uptrace_config:
+                logger.debug("Overriding UPTRACE_API_TOKEN from config file.")
                 api_token = str(uptrace_config["api_token"]).strip()
         except Exception as e:
             raise ValueError(f"Error reading configuration file: {e}")
@@ -1115,6 +1123,10 @@ def main() -> None:
     mcp_logger.setLevel(logging.WARNING)
 
     logger.info("Starting Uptrace MCP server")
+    logger.debug(f"Parsed CLI arguments: {args}")
+    logger.debug(
+        f"Logging configured with level: {logging.getLevelName(log_level)}, file: {log_file}"
+    )
 
     # Verify environment variables / config loading
     try:
