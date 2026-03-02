@@ -1,6 +1,6 @@
 [project]
 name = "uptrace-mcp"
-version = "0.1.0"
+version = "0.1.1"
 description = "MCP server for Uptrace observability platform"
 authors = [
     { name = "Your Name", email = "you@example.com" }
@@ -11,7 +11,8 @@ dependencies = [
     "mcp>=1.1.2",
     "pydantic>=2.10.0",
     "python-dotenv>=1.0.0",
-    "requests>=2.32.0"
+    "pyyaml>=6.0.3",
+    "requests>=2.32.0",
 ]
 
 [project.scripts]

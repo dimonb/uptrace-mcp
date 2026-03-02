@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SpanEvent(BaseModel):
@@ -35,8 +35,7 @@ class Span(BaseModel):
     events: List[SpanEvent] = Field(default_factory=list)
     links: List[Dict[str, Any]] = Field(default_factory=list)
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class SpansResponse(BaseModel):
@@ -46,8 +45,7 @@ class SpansResponse(BaseModel):
     spans: List[Span]
     has_more: Optional[bool] = Field(None, alias="hasMore")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class QueryFilter(BaseModel):
@@ -66,8 +64,7 @@ class TraceResponse(BaseModel):
     trace_id: str = Field(alias="traceId")
     spans: List[Span]
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ServiceInfo(BaseModel):
@@ -100,8 +97,7 @@ class LogEntry(BaseModel):
         """Get log message from attributes."""
         return self.attrs.get("log_message") or self.log_message
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class LogsResponse(BaseModel):
@@ -111,8 +107,7 @@ class LogsResponse(BaseModel):
     logs: List[LogEntry]
     has_more: Optional[bool] = Field(None, alias="hasMore")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class MetricQuery(BaseModel):
@@ -121,8 +116,7 @@ class MetricQuery(BaseModel):
     metrics: List[str]
     query: List[str]
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class MetricResult(BaseModel):
@@ -133,8 +127,7 @@ class MetricResult(BaseModel):
     labels: Dict[str, str] = Field(default_factory=dict)
     timestamp: Optional[float] = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class MetricsResponse(BaseModel):
@@ -143,8 +136,7 @@ class MetricsResponse(BaseModel):
     results: List[MetricResult]
     metadata: Optional[Dict[str, Any]] = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class Monitor(BaseModel):
@@ -159,8 +151,7 @@ class Monitor(BaseModel):
     channel_ids: Optional[List[int]] = Field(None, alias="channelIds")
     repeat_interval: Optional[Any] = Field(None, alias="repeatInterval")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class Dashboard(BaseModel):
@@ -174,8 +165,7 @@ class Dashboard(BaseModel):
     created_at: Optional[datetime] = Field(None, alias="createdAt")
     updated_at: Optional[datetime] = Field(None, alias="updatedAt")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class Alert(BaseModel):
@@ -192,5 +182,4 @@ class Alert(BaseModel):
     status: Optional[str] = None
     events: List[Dict[str, Any]] = Field(default_factory=list)
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)

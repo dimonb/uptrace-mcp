@@ -1,10 +1,11 @@
 """Tests for Uptrace client."""
 
-import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
 
 import pytest
+
+import requests
 
 from uptrace_mcp.client import UptraceClient, UptraceClientError
 
@@ -65,8 +66,8 @@ def test_get_spans_success(mock_request, client):
     }
     mock_request.return_value = mock_response
 
-    time_gte = datetime.utcnow() - timedelta(hours=1)
-    time_lt = datetime.utcnow()
+    time_gte = datetime.now(timezone.utc) - timedelta(hours=1)
+    time_lt = datetime.now(timezone.utc)
 
     response = client.get_spans(time_gte=time_gte, time_lt=time_lt)
 
@@ -84,8 +85,8 @@ def test_get_error_spans(mock_request, client):
     mock_response.json.return_value = {"count": 0, "spans": []}
     mock_request.return_value = mock_response
 
-    time_gte = datetime.utcnow() - timedelta(hours=1)
-    time_lt = datetime.utcnow()
+    time_gte = datetime.now(timezone.utc) - timedelta(hours=1)
+    time_lt = datetime.now(timezone.utc)
 
     client.get_error_spans(time_gte=time_gte, time_lt=time_lt)
 
@@ -102,11 +103,15 @@ def test_http_error_handling(mock_request, client):
     mock_response = Mock()
     mock_response.status_code = 404
     mock_response.text = "Not found"
-    mock_response.raise_for_status.side_effect = Exception("404 Error")
+
+    # Create a proper HTTPError with the mock response attached
+    http_error = requests.exceptions.HTTPError("404 Error")
+    http_error.response = mock_response
+    mock_response.raise_for_status.side_effect = http_error
     mock_request.return_value = mock_response
 
-    time_gte = datetime.utcnow() - timedelta(hours=1)
-    time_lt = datetime.utcnow()
+    time_gte = datetime.now(timezone.utc) - timedelta(hours=1)
+    time_lt = datetime.now(timezone.utc)
 
     with pytest.raises(UptraceClientError):
         client.get_spans(time_gte=time_gte, time_lt=time_lt)
@@ -114,8 +119,6 @@ def test_http_error_handling(mock_request, client):
 
 def test_datetime_formatting():
     """Test datetime is formatted correctly."""
-    client = UptraceClient("https://test.uptrace.dev", "1", "token")
-
     dt = datetime(2025, 12, 8, 10, 30, 0)
     formatted = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 

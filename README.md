@@ -21,11 +21,10 @@ Model Context Protocol (MCP) server for [Uptrace](https://uptrace.dev) observabi
 - Poetry (recommended) or pip
 - Uptrace instance (self-hosted or cloud)
 
-### Using Poetry (recommended)
+### Using uv (recommended)
 
 ```bash
-cd uptrace-mcp
-poetry install
+uvx --from . uptrace-mcp
 ```
 
 ### Using pip
@@ -42,6 +41,15 @@ Create a `.env` file in the project root or set environment variables:
 UPTRACE_URL=https://uptrace.xxx
 UPTRACE_PROJECT_ID=3
 UPTRACE_API_TOKEN=your_token_here
+```
+
+You can also use a YAML file for configuration by passing the `--config` parameter.
+```yaml
+# config.yaml
+uptrace:
+  api_url: "https://uptrace.xxx"
+  project_id: "3"
+  api_token: "your_token_here"
 ```
 
 ### Getting your Uptrace API token
@@ -82,43 +90,35 @@ Add the following configuration (replace the paths with your actual project path
 {
   "mcpServers": {
     "uptrace": {
-      "command": "/path/to/uptrace-mcp/.venv/bin/poetry",
-      "args": ["run", "uptrace-mcp"],
-      "cwd": "/path/to/uptrace-mcp",
+      "command": "uvx",
+      "args": ["--from", "/path/to/uptrace-mcp", "uptrace-mcp"],
       "env": {
         "UPTRACE_URL": "https://uptrace.xxx",
         "UPTRACE_PROJECT_ID": "3",
         "UPTRACE_API_TOKEN": "your_token_here"
       }
+    }
+  }
+}
+```
+
+Or using a config file:
+
+```json
+{
+  "mcpServers": {
+    "uptrace": {
+      "command": "uvx",
+      "args": ["--from", "/path/to/uptrace-mcp", "uptrace-mcp", "--config", "/path/to/config.yaml"]
     }
   }
 }
 ```
 
 **Configuration parameters:**
-- `command` - Full path to the Poetry executable (or Python interpreter)
-- `args` - Arguments passed to the command (`["run", "uptrace-mcp"]` for Poetry)
-- `cwd` - **Working directory** - must be the project root directory (where `pyproject.toml` is located)
-- `env` - Environment variables for the server
-
-**Note**: If you're using Poetry, make sure to use the full path to the Poetry executable from your virtual environment (`.venv/bin/poetry`) or the system Poetry installation. Alternatively, you can use the Python interpreter directly:
-
-```json
-{
-  "mcpServers": {
-    "uptrace": {
-      "command": "/Users/dimonb/work/pet/uptrace-mcp/.venv/bin/python",
-      "args": ["-m", "uptrace_mcp.server"],
-      "cwd": "/Users/dimonb/work/pet/uptrace-mcp",
-      "env": {
-        "UPTRACE_URL": "https://uptrace.xxx",
-        "UPTRACE_PROJECT_ID": "3",
-        "UPTRACE_API_TOKEN": "your_token_here"
-      }
-    }
-  }
-}
-```
+- `command` - Should be `uvx`
+- `args` - Arguments passed to the command (`["--from", "project_path", "uptrace-mcp"]`)
+- `env` - Environment variables for the server (can be omitted if using `--config`)
 
 After saving the configuration, restart Cursor. The Uptrace tools will be available in the MCP tools panel.
 
@@ -130,9 +130,8 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 {
   "mcpServers": {
     "uptrace": {
-      "command": "poetry",
-      "args": ["run", "uptrace-mcp"],
-      "cwd": "/Users/your-username/work/pet/uptrace-mcp",
+      "command": "uvx",
+      "args": ["--from", "/Users/your-username/work/pet/uptrace-mcp", "uptrace-mcp"],
       "env": {
         "UPTRACE_URL": "https://uptrace.xxx",
         "UPTRACE_PROJECT_ID": "3",
@@ -148,11 +147,14 @@ Restart Claude Desktop and the Uptrace tools will be available.
 ### Running Directly
 
 ```bash
-# Using poetry
-poetry run uptrace-mcp
+# Using uv
+uv run uptrace-mcp
 
 # Or if installed with pip
 uptrace-mcp
+
+# With config
+uv run uptrace-mcp --config config.yaml
 ```
 
 ## Available Tools
@@ -430,20 +432,20 @@ See `examples/query_errors.py` for more examples.
 ### Running tests
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 ### Code formatting
 
 ```bash
-poetry run black src/
-poetry run ruff check src/
+uv run black src/
+uv run ruff check src/
 ```
 
 ### Type checking
 
 ```bash
-poetry run mypy src/
+uv run mypy src/
 ```
 
 ## Architecture
@@ -472,21 +474,15 @@ If you see "No server info found" error in Cursor:
    - Windows: `%APPDATA%\Cursor\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json`
    - Linux: `~/.config/Cursor/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
 
-2. **Check the `cwd` parameter** - This is critical! The `cwd` must point to the project root directory (where `pyproject.toml` is located):
-   ```json
-   "cwd": "/full/path/to/uptrace-mcp"
-   ```
-   Common error: `Poetry could not find a pyproject.toml file` means `cwd` is wrong.
+2. **Check file permissions** - Ensure the configuration file is valid JSON and readable
 
-3. **Check file permissions** - Ensure the configuration file is valid JSON and readable
-
-4. **Verify Poetry/Python path** - Test the command manually:
+3. **Verify uv/Python path** - Test the command manually:
    ```bash
    cd /path/to/uptrace-mcp
-   .venv/bin/poetry run uptrace-mcp --help
+   uv run uptrace-mcp --help
    ```
 
-5. **Check environment variables** - Make sure all required variables are set in the `env` section:
+4. **Check environment variables** - Make sure all required variables are set in the `env` section, or a `--config` string is specified:
    - `UPTRACE_URL`
    - `UPTRACE_PROJECT_ID`
    - `UPTRACE_API_TOKEN`
@@ -528,7 +524,7 @@ If queries return no data:
    export UPTRACE_URL="https://uptrace.xxx"
    export UPTRACE_PROJECT_ID="3"
    export UPTRACE_API_TOKEN="your_token"
-   .venv/bin/poetry run uptrace-mcp
+   uv run uptrace-mcp
    ```
 
    The server should start without errors. Press Ctrl+C to stop it.

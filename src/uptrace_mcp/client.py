@@ -63,10 +63,11 @@ class UptraceClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as e:
-            logger.error(f"HTTP error: {e.response.status_code} - {e.response.text}")
-            raise UptraceClientError(
-                f"HTTP {e.response.status_code}: {e.response.text}"
-            ) from e
+            # Need to handle case where e.response might be None or missing attributes
+            status_code = getattr(e.response, "status_code", "Unknown")
+            text = getattr(e.response, "text", str(e))
+            logger.error(f"HTTP error: {status_code} - {text}")
+            raise UptraceClientError(f"HTTP {status_code}: {text}") from e
         except requests.exceptions.RequestException as e:
             logger.error(f"Request failed: {e}")
             raise UptraceClientError(f"Request failed: {e}") from e
@@ -298,7 +299,7 @@ class UptraceClient:
         Raises:
             UptraceClientError: If request fails
         """
-        duration_query = f'where _dur_ms > {min_duration_ms}ms'
+        duration_query = f"where _dur_ms > {min_duration_ms}ms"
         if query:
             full_query = f"{duration_query} | {query}"
         else:
@@ -524,11 +525,11 @@ class UptraceClient:
         # The actual metric definitions are handled by Uptrace internally
         # We combine query expressions into a UQL query
         query_parts = query.copy()
-        
+
         # Log metrics for debugging (they're used in query but not directly in API call)
         if metrics:
             logger.debug("Querying metrics: %s", metrics)
-        
+
         uql_query = " | ".join(query_parts)
 
         # Use groups API to query metrics
@@ -601,7 +602,7 @@ class UptraceClient:
             UptraceClientError: If request fails
         """
         path = f"/internal/v1/projects/{self.project_id}/monitors"
-        
+
         try:
             data = self._make_request("GET", path)
             return [Monitor(**m) for m in data.get("monitors", [])]
@@ -623,7 +624,7 @@ class UptraceClient:
             UptraceClientError: If request fails
         """
         path = f"/internal/v1/projects/{self.project_id}/monitors/{monitor_id}"
-        
+
         try:
             data = self._make_request("GET", path)
             return Monitor(**data.get("monitor", {}))
@@ -646,14 +647,14 @@ class UptraceClient:
         # Based on other endpoints, it's likely /api/v1/projects/{project_id}/dashboards or /api/v1/dashboards
         # Let's try project scoped first as it matches other internal APIs
         path = f"/internal/v1/projects/{self.project_id}/dashboards"
-        
+
         try:
             # Fallback to public API if internal fails? No, let's try assuming standard structure.
             # If 404, we might need to look for another endpoint.
             data = self._make_request("GET", path)
             return [Dashboard(**d) for d in data.get("dashboards", [])]
         except UptraceClientError as e:
-             # Just in case the path is different, try public API path
+            # Just in case the path is different, try public API path
             if "404" in str(e):
                 try:
                     path = f"/api/v1/tracing/{self.project_id}/dashboards"
@@ -680,7 +681,7 @@ class UptraceClient:
             UptraceClientError: If request fails
         """
         path = f"/internal/v1/projects/{self.project_id}/alerts/{alert_id}"
-        
+
         try:
             data = self._make_request("GET", path)
             alert_data = data.get("alert", {})
@@ -692,7 +693,6 @@ class UptraceClient:
             raise UptraceClientError(f"Failed to parse response: {e}") from e
 
     def get_query_syntax(self) -> Dict[str, Any]:
-
         """
         Get UQL (Uptrace Query Language) syntax documentation.
 
@@ -787,8 +787,14 @@ class UptraceClient:
                 "description": "Metrics can be queried using PromQL-compatible syntax",
                 "metric_aliases": "All metrics require aliases with $ prefix",
                 "example": {
-                    "metrics": ["postgresql_commits as $commits", "postgresql_rollbacks as $rollbacks"],
-                    "query": ["sum($commits) as total_commits", "sum($rollbacks) as total_rollbacks"],
+                    "metrics": [
+                        "postgresql_commits as $commits",
+                        "postgresql_rollbacks as $rollbacks",
+                    ],
+                    "query": [
+                        "sum($commits) as total_commits",
+                        "sum($rollbacks) as total_rollbacks",
+                    ],
                 },
             },
         }
