@@ -1108,7 +1108,7 @@ def main() -> None:
     if log_file:
         log_kwargs["filename"] = log_file
 
-    logging.basicConfig(**log_kwargs)
+    logging.basicConfig(force=True, **log_kwargs)
 
     # Reduce verbosity of MCP server internal logging
     mcp_logger = logging.getLogger("mcp.server")
