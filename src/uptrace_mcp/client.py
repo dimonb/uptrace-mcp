@@ -61,7 +61,7 @@ class UptraceClient:
         try:
             response = self.session.request(method, url, params=params, **kwargs)
             response.raise_for_status()
-            return response.json()
+            return response.json()  # type: ignore
         except requests.exceptions.HTTPError as e:
             # Need to handle case where e.response might be None or missing attributes
             status_code = getattr(e.response, "status_code", "Unknown")
@@ -442,7 +442,7 @@ class UptraceClient:
         for span in spans_response.spans:
             log_entry = LogEntry(
                 id=span.id,
-                trace_id=span.trace_id,
+                traceId=span.trace_id,
                 time=span.time,
                 attrs=span.attrs,
                 log_severity=span.attrs.get("log_severity"),
@@ -454,7 +454,7 @@ class UptraceClient:
         return LogsResponse(
             count=spans_response.count,
             logs=logs,
-            has_more=spans_response.has_more,
+            hasMore=spans_response.has_more,
         )
 
     def get_error_logs(

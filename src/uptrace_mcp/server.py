@@ -165,7 +165,7 @@ _uptrace_client: Optional[UptraceClient] = None
 app = Server("uptrace-mcp")
 
 
-@app.list_tools()
+@app.list_tools()  # type: ignore
 async def list_tools() -> list[Tool]:
     """List available MCP tools."""
     return [
@@ -392,7 +392,7 @@ async def list_tools() -> list[Tool]:
     ]
 
 
-@app.call_tool()
+@app.call_tool()  # type: ignore
 async def call_tool(name: str, arguments: Any) -> list[TextContent]:
     """Handle tool calls."""
     try:

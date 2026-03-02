@@ -11,7 +11,7 @@ from uptrace_mcp.client import UptraceClient, UptraceClientError
 
 
 @pytest.fixture
-def client():
+def client() -> UptraceClient:
     """Create test client."""
     return UptraceClient(
         base_url="https://test.uptrace.dev",
@@ -20,7 +20,7 @@ def client():
     )
 
 
-def test_client_initialization(client):
+def test_client_initialization(client: UptraceClient) -> None:
     """Test client is properly initialized."""
     assert client.base_url == "https://test.uptrace.dev"
     assert client.project_id == "1"
@@ -29,7 +29,7 @@ def test_client_initialization(client):
     assert client.session.headers["Authorization"] == "Bearer test_token"
 
 
-def test_context_manager():
+def test_context_manager() -> None:
     """Test client works as context manager."""
     with UptraceClient("https://test.uptrace.dev", "1", "token") as client:
         assert client.session is not None
@@ -37,7 +37,7 @@ def test_context_manager():
 
 
 @patch("uptrace_mcp.client.requests.Session.request")
-def test_get_spans_success(mock_request, client):
+def test_get_spans_success(mock_request: Mock, client: UptraceClient) -> None:
     """Test successful get_spans call."""
     mock_response = Mock()
     mock_response.status_code = 200
@@ -78,7 +78,7 @@ def test_get_spans_success(mock_request, client):
 
 
 @patch("uptrace_mcp.client.requests.Session.request")
-def test_get_error_spans(mock_request, client):
+def test_get_error_spans(mock_request: Mock, client: UptraceClient) -> None:
     """Test get_error_spans filters by error status."""
     mock_response = Mock()
     mock_response.status_code = 200
@@ -98,7 +98,7 @@ def test_get_error_spans(mock_request, client):
 
 
 @patch("uptrace_mcp.client.requests.Session.request")
-def test_http_error_handling(mock_request, client):
+def test_http_error_handling(mock_request: Mock, client: UptraceClient) -> None:
     """Test HTTP error is properly handled."""
     mock_response = Mock()
     mock_response.status_code = 404
@@ -117,7 +117,7 @@ def test_http_error_handling(mock_request, client):
         client.get_spans(time_gte=time_gte, time_lt=time_lt)
 
 
-def test_datetime_formatting():
+def test_datetime_formatting() -> None:
     """Test datetime is formatted correctly."""
     dt = datetime(2025, 12, 8, 10, 30, 0)
     formatted = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
