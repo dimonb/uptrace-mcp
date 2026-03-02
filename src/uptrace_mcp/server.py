@@ -393,6 +393,7 @@ async def list_tools() -> list[Tool]:
 @app.call_tool()  # type: ignore
 async def call_tool(name: str, arguments: Any) -> list[TextContent]:
     """Handle tool calls."""
+    logger.debug(f"Received MCP tool call: {name} with arguments: {arguments}")
     try:
         global _uptrace_client
         if _uptrace_client is None:
@@ -461,6 +462,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
                     "spans": spans_data,
                 }
 
+                logger.debug(f"Tool {name} executed successfully. Returning content.")
                 return [
                     TextContent(
                         type="text",
@@ -1115,6 +1117,9 @@ def main() -> None:
 
     if log_file:
         log_kwargs["filename"] = log_file
+    else:
+        # Crucial for MCP stdio server: Never log to stdout, only stderr
+        log_kwargs["stream"] = sys.stderr
 
     logging.basicConfig(force=True, **log_kwargs)
 
